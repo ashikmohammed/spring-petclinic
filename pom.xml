@@ -20,18 +20,31 @@
     <java.version>1.8</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-
+    
     <!-- Web dependencies -->
     <webjars-bootstrap.version>3.3.6</webjars-bootstrap.version>
     <webjars-jquery-ui.version>1.11.4</webjars-jquery-ui.version>
     <webjars-jquery.version>2.2.4</webjars-jquery.version>
     <wro4j.version>1.8.0</wro4j.version>
-
+    <docker.jib-maven-plugin.version>2.6.0</docker.jib-maven-plugin.version>
     <jacoco.version>0.8.5</jacoco.version>
     <nohttp-checkstyle.version>0.0.4.RELEASE</nohttp-checkstyle.version>
     <spring-format.version>0.0.25</spring-format.version>
-  </properties>
+    <docker.image.prefix>task</docker.image.prefix>
 
+  </properties>
+  <distributionManagement>
+      <repository>
+          <id>central</id>
+          <name>a0uzhabbwk6ds-artifactory-primary-0-releases</name>
+          <url>https://ashik.jfrog.io/artifactory/default-maven-virtual</url>
+      </repository>
+      <snapshotRepository>
+          <id>snapshots</id>
+          <name>a0uzhabbwk6ds-artifactory-primary-0-snapshots</name>
+          <url>https://ashik.jfrog.io/artifactory/default-maven-virtual</url>
+      </snapshotRepository>
+  </distributionManagement>
   <dependencies>
     <!-- Spring and Spring Boot dependencies -->
     <dependency>
@@ -123,6 +136,24 @@
 
   <build>
     <plugins>
+      <plugin>
+          <groupId>com.google.cloud.tools</groupId>
+          <artifactId>jib-maven-plugin</artifactId>
+          <version>${docker.jib-maven-plugin.version}</version>
+          <configuration>
+              <to>
+                  <image>ashik.jfrog.io/default-docker-virtual/${docker.image.prefix}/${project.artifactId}</image>
+                  <tags>
+                      <tag>${project.version}</tag>
+                      <tag>latest</tag>
+                  </tags>
+                  <auth>
+22                  <username>${env.jfroguser}</username>
+24                  <password>${env.jfrogpassword}</password>
+26                </auth>
+              </to>
+          </configuration>
+      </plugin>
       <plugin>
         <groupId>io.spring.javaformat</groupId>
         <artifactId>spring-javaformat-maven-plugin</artifactId>
