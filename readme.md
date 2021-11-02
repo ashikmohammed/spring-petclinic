@@ -1,5 +1,112 @@
 # Spring PetClinic Sample Application [![Build Status](https://github.com/spring-projects/spring-petclinic/actions/workflows/maven-build.yml/badge.svg)](https://github.com/spring-projects/spring-petclinic/actions/workflows/maven-build.yml)
 
+# Task Details
+
+To run the application 
+
+```
+docker run -p 8080:8080 ashik.jfrog.io/default-docker-virtual/task/spring-petclinic:2.5.0-SNAPSHOT
+```
+
+## Docker builds using Jenkins Pipeline. 
+
+* [x] Compile the code
+* [x] Run the tests
+* [x] Package the project as a runnable Docker image
+* [x] JCenter for Dependency Resolution 
+
+## Prerequisites 
+
+Create jflog account and configure Maven and Docker repos 
+
+* Download maven settinsgs.xml 
+
+* Copy Maven settings.xml to the host machine's .m2 folder 
+
+* Create Jenkins credential with jflog user id and password
+
+* Create a base Docker image with settings.xml 
+
+```
+FROM ashik.jfrog.io/default-docker-remote/adoptopenjdk/maven-openjdk11 AS maven
+
+COPY settings.xml ${MAVEN_HOME}/conf/settings.xml
+```
+
+```
+docker build . -t ashik.jfrog.io/default-docker-virtual/task/custommvn:latest
+
+docker push ashik.jfrog.io/default-docker-virtual/task/custommvn:latest
+````
+
+
+Build pipeline using the maven jib plugin 
+
+Add plugin reference in pom.xml
+
+Update from image to ashik.jfrog.io/default-docker-virtual/task/custommvn:latest
+Update "to" image to ashik.jfrog.io/default-docker-virtual/task/spring-petclinic
+
+### Docker file 
+
+```
+FROM ashik.jfrog.io/default-docker-virtual/task/custommvn:latest AS maven
+
+WORKDIR /usr/src/app
+COPY . /usr/src/app
+
+RUN mvn package
+
+FROM ashik.jfrog.io/default-docker-remote/openjdk:11
+
+WORKDIR /opt/app
+
+COPY --from=maven /usr/src/app/target/*.jar /opt/app/app.jar
+
+ENTRYPOINT exec java -jar /opt/app/app.jar
+```
+
+### Jenkins Pipeline 
+
+```
+pipeline {
+    agent any
+
+    tools {
+        // Install the Maven version configured as "M3" and add it to the path.
+        maven "M3"
+    }
+
+
+    stages {
+
+        stage('Build') {
+            steps {
+                // Get some code from a GitHub repository
+                git url: 'https://github.com/ashikmohammed/spring-petclinic',  branch: 'main'
+
+                // Run Maven on a Unix agent.
+                sh "mvn test jib:build"
+
+            }
+
+            post {
+                success {
+                    junit '**/target/surefire-reports/TEST-*.xml'
+                    archiveArtifacts 'target/*.jar'
+                }
+            }
+        }
+
+    }
+}
+
+```
+
+
+
+
+
 ## Understanding the Spring Petclinic application with a few diagrams
 <a href="https://speakerdeck.com/michaelisvy/spring-petclinic-sample-application">See the presentation here</a>
 
