@@ -1,11 +1,11 @@
-FROM ashik.jfrog.io/default-docker-virtual/task/custommvn:latest AS maven
+FROM ashikm.jfrog.io/default-docker-virtual/ashik-mvn-build:latest AS maven
 
 WORKDIR /usr/src/app
 COPY . /usr/src/app
 
 RUN mvn package
 
-FROM ashik.jfrog.io/default-docker-remote/openjdk:11
+FROM ashikm.jfrog.io/default-docker-remote/openjdk:11
 
 WORKDIR /opt/app
 
